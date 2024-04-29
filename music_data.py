@@ -1,18 +1,19 @@
+#%%
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pandas as pd
-
+#%%
 class Music:
     def __init__(self):
         self.sp = self.initialize_spotipy()
         self.api_key = '4e4d5f65c4ccd249b6fb8b3f7b761eef'
-
+#%%
     def initialize_spotipy(self):
         client_id = '4187992fdb764829b6b2ce20718027c0'
         client_secret = '4adc98b676ed40e1b43c521b355ef809'
         client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
         return spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
+#%%
     def get_user_listening_history(self, user_id):
         # Retrieve user listening history from Spotify API
         results = self.sp.current_user_recently_played(limit=50)
@@ -26,7 +27,7 @@ class Music:
                 'timestamp': item['played_at']
             })
         return listening_history
-
+#%%
     def get_track_audio_features(self, track_id):
         # Retrieve track audio features from Spotify API
         audio_features = self.sp.audio_features([track_id])[0]
@@ -44,7 +45,7 @@ class Music:
             'valence': audio_features['valence'],
             'tempo': audio_features['tempo']
         }
-
+#%%
     def get_artist_metadata(self, artist_id):
         # Retrieve artist metadata from Spotify API
         artist = self.sp.artist(artist_id)
@@ -53,7 +54,7 @@ class Music:
             'genres': artist['genres'],
             'popularity': artist['popularity']
         }
-
+#%%
     def get_track_metadata(self, track_id):
         # Retrieve track metadata from Spotify API
         track = self.sp.track(track_id)
@@ -65,7 +66,7 @@ class Music:
             'popularity': track['popularity'],
             'duration_ms': track['duration_ms']
         }
-
+#%%
     def add_track_features_to_dataset(self, data):
         # Retrieve track metadata and audio features for each track in the dataset
         track_metadata = {}
@@ -77,11 +78,11 @@ class Music:
                 audio_features = self.get_track_audio_features(track_id)
                 track_metadata[track_id] = metadata
                 track_audio_features[track_id] = audio_features
-
+#%%
         # Convert track metadata and audio features to DataFrames
         metadata_df = pd.DataFrame.from_dict(track_metadata, orient='index')
         audio_features_df = pd.DataFrame.from_dict(track_audio_features, orient='index')
-
+#%%
         # Merge track metadata and audio features with the dataset if they are not empty
         if not metadata_df.empty:
             data = data.merge(metadata_df, on='track_id', how='left')

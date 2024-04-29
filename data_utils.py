@@ -1,7 +1,9 @@
+#%%
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.model_selection import KFold
 
+#%%
 def preprocess_data(data):
     # Handle missing values
     data = handle_missing_values(data)
@@ -14,6 +16,7 @@ def preprocess_data(data):
 
     return data
 
+#%%
 def handle_missing_values(data):
     # Handle missing values based on your requirements
     # For example, you can remove rows with missing values or fill them with a specific value
@@ -22,6 +25,7 @@ def handle_missing_values(data):
 
     return data
 
+#%%
 def normalize_features(data):
     # Normalize or scale the features using MinMaxScaler
     scaler = MinMaxScaler()
@@ -35,6 +39,7 @@ def normalize_features(data):
 
     return data
 
+#%%
 def encode_categorical_variables(data):
     # Encode categorical variables using LabelEncoder
     categorical_columns = ['gender', 'country', 'artname']  # Update with the categorical columns in your dataset
@@ -48,11 +53,13 @@ def encode_categorical_variables(data):
 
     return data
 
+#%%
 def extract_user_item_interactions(data):
     # Extract user-item interactions from the dataset
     user_item_interactions = data.groupby(['usersha1', 'artname'])['plays'].sum().unstack(fill_value=0)
     return user_item_interactions
 
+#%%
 def extract_item_content_features(data):
     # Extract item content features from the dataset
     item_content_features = data.drop_duplicates(subset='artname')
@@ -72,17 +79,18 @@ def extract_item_content_features(data):
 
     return item_content_features
 
+#%%
 def split_data(user_item_interactions, n_splits=5, random_state=None):
     # Get the user and item IDs
     user_ids = user_item_interactions.index.tolist()
     item_ids = user_item_interactions.columns.tolist()
-
+#%%
     # Create a list of user-item pairs
     user_item_pairs = []
     for user_id in user_ids:
         for item_id in item_ids:
             user_item_pairs.append((user_id, item_id))
-
+#%%
     # Create the interaction labels
     interaction_labels = [1 if user_item_interactions.loc[user_id, item_id] > 0 else 0
                           for user_id, item_id in user_item_pairs]
@@ -93,7 +101,7 @@ def split_data(user_item_interactions, n_splits=5, random_state=None):
     # Initialize lists to store the train and test splits
     train_data_list = []
     test_data_list = []
-
+#%%
     # Perform cross-validation splits
     for train_indices, test_indices in kf.split(user_item_pairs):
         # Get the train and test user-item pairs and interaction labels
@@ -101,13 +109,13 @@ def split_data(user_item_interactions, n_splits=5, random_state=None):
         test_pairs = [user_item_pairs[i] for i in test_indices]
         train_labels = [interaction_labels[i] for i in train_indices]
         test_labels = [interaction_labels[i] for i in test_indices]
-
+#%%
         # Convert the train and test pairs into DataFrames
         train_data = pd.DataFrame(train_pairs, columns=['user_id', 'item_id'])
         train_data['interaction'] = train_labels
         test_data = pd.DataFrame(test_pairs, columns=['user_id', 'item_id'])
         test_data['interaction'] = test_labels
-
+#%%
         # Append the train and test DataFrames to the respective lists
         train_data_list.append(train_data)
         test_data_list.append(test_data)

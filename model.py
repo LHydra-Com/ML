@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
@@ -5,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import precision_score, recall_score, f1_score, average_precision_score
 
+#%%
 class HybridRecommender:
     def __init__(self, user_item_interactions, item_content_features):
         self.user_item_interactions = user_item_interactions
@@ -13,7 +15,7 @@ class HybridRecommender:
         self.user_similarity_matrix = None
         self.combined_similarity_matrix = None
         self.model = None
-
+#%%
     def preprocess_data(self):
         # Normalize the user-item interaction data
         scaler = MinMaxScaler()
@@ -25,24 +27,24 @@ class HybridRecommender:
         self.item_content_features = pd.DataFrame(scaler.fit_transform(self.item_content_features),
                                                   columns=self.item_content_features.columns,
                                                   index=self.item_content_features.index)
-
+#%%
     def calculate_item_similarity(self):
         # Calculate item similarity based on content features
         self.item_similarity_matrix = cosine_similarity(self.item_content_features)
-
+#%%
     def calculate_user_similarity(self):
         # Calculate user similarity based on user-item interactions
         self.user_similarity_matrix = cosine_similarity(self.user_item_interactions)
-
+#%%
     def combine_similarity_matrices(self, alpha=0.5):
         # Combine item similarity and user similarity matrices
         self.combined_similarity_matrix = alpha * self.item_similarity_matrix + (1 - alpha) * self.user_similarity_matrix
-
+#%%
     def train_model(self):
         # Train the nearest neighbors model on the combined similarity matrix
         self.model = NearestNeighbors(metric='cosine', algorithm='brute')
         self.model.fit(self.combined_similarity_matrix)
-
+#%%
     def train(self, train_data):
         # Preprocess the data
         self.preprocess_data()
@@ -58,7 +60,7 @@ class HybridRecommender:
 
         # Train the nearest neighbors model
         self.train_model()
-
+#%%
     def generate_recommendations(self, user_id, top_n=10):
         # Generate recommendations for a given user
         user_index = self.user_item_interactions.index.get_loc(user_id)
@@ -74,7 +76,7 @@ class HybridRecommender:
         recommended_items = self.item_content_features.index[item_indices]
 
         return recommended_items
-
+#%%
     def evaluate(self, test_data, top_n=10):
         # Get the user IDs from the test data
         user_ids = test_data['user_id'].unique()
@@ -100,7 +102,7 @@ class HybridRecommender:
             # Append the true and predicted labels to the lists
             y_true.extend(true_labels)
             y_pred.extend(predicted_labels)
-
+#%%
         # Calculate the evaluation metrics
         precision = precision_score(y_true, y_pred)
         recall = recall_score(y_true, y_pred)
@@ -114,7 +116,7 @@ class HybridRecommender:
             'F1-score': f1,
             'MAP': map_score
         }
-
+#%%
     def get_trending_songs(self, top_n=10):
         # Get the trending songs based on overall popularity
         trending_songs = self.user_item_interactions.sum().sort_values(ascending=False).head(top_n).index

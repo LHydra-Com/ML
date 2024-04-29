@@ -1,3 +1,4 @@
+#%%
 # import libraries
 from model import HybridRecommender
 from music_data import Music
@@ -10,24 +11,27 @@ import pycountry
 import ast
 # Ignore all warnings
 warnings.filterwarnings("ignore")
-
+#%%
 # Extract the various artists in the dataset and their associated encoded codes
 start_time = time.time()
 df = pd.read_csv('dataset.csv')
 df = df.drop_duplicates(subset='usersha1', keep='first')
 
+#%%
 # Normalize the 'plays' column
 min_value = df['plays'].min()
 max_value = df['plays'].max()
 df['plays'] = (df['plays'] - min_value) / (max_value - min_value)
 df.to_csv('normalized_data.csv')
 
+#%%
 # Get the artist names and countries
 artists = df['artname'].unique().tolist()
 artists_dict = {artist: i for i, artist in enumerate(artists)}
 countries = df['country'].unique().tolist()
 countries_dict = {country: i for i, country in enumerate(countries)}
 
+#%%
 # Function to get an artist name given the artist encoding code
 def artname_by_artcode(artist_code, dictionary=artists_dict):
     for key, value in dictionary.items():
@@ -36,6 +40,7 @@ def artname_by_artcode(artist_code, dictionary=artists_dict):
     msg = f'No artist found with code {artist_code}.'
     return msg
 
+#%%
 end_time = time.time()      
 execution_time = end_time - start_time
 
@@ -47,6 +52,7 @@ else:
 print('🤖 Hey there! 😄 Welcome to LHydra, your personal music guru. I am here to help you discover amazing songs that you will absolutely love!')
 print("🤖 But first, let me get to know you a little better. Don't worry, I won't bite! 😉")
 
+#%%
 # Get user input from a list
 user_data = ["male", 25, "United States", "Led Zeppelin", "Stairway to Heaven", 5]
 
@@ -80,7 +86,7 @@ except:
     country = None
 
 print(f"🤖 No way, {favorite_artist} is legendary! And {favorite_song} - is an absolute gem! 💎")
-
+#%%
 monthly_plays = plays * 30
 
 average_playcounts = round(df['plays'].mean())
@@ -96,6 +102,7 @@ print(f"🤖 With their infectious beats and catchy lyrics, it's no surprise tha
 
 print(f"🤖 Ok! Enough of my fun facts! Here comes my findings")
 
+#%%
 # Impute artist, if not provided
 if favorite_artist.lower() in ['none', 'unknown']:
     fav_artist = global_popular_artist
@@ -112,7 +119,8 @@ if plays in [0, 'none', 'None']:
     plays = average_playcounts
 else:
     plays = int(plays)
-
+#%%
+    
 # Load and preprocess the dataset
 data = pd.read_csv('normalized_data.csv')
 music = Music()
@@ -129,6 +137,7 @@ train_data_list, test_data_list = split_data(user_item_interactions, n_splits=5,
 # Create an instance of the HybridRecommender
 recommender = HybridRecommender(user_item_interactions, item_content_features)
 
+#%%
 # Perform cross-validation and evaluate the recommender system
 evaluation_metrics = []
 for train_data, test_data in zip(train_data_list, test_data_list):
@@ -138,7 +147,7 @@ for train_data, test_data in zip(train_data_list, test_data_list):
     # Evaluate the recommender system using the testing data
     metrics = recommender.evaluate(test_data)
     evaluation_metrics.append(metrics)
-
+#%%
 # Calculate average evaluation metrics across all cross-validation splits
 avg_metrics = {metric: sum(values) / len(values) for metric, values in zip(evaluation_metrics[0].keys(), zip(*[d.values() for d in evaluation_metrics]))}
 
@@ -150,10 +159,11 @@ print(f"Recall: {avg_metrics['Recall']}")
 print(f"F1-score: {avg_metrics['F1-score']}")
 print(f"MAP: {avg_metrics['MAP']}")
 
+#%%
 # Retrieve user listening history
 user_id = "user123"  # Example user ID
 listening_history = music.get_user_listening_history(user_id)
-
+#%%
 # Retrieve track audio features
 track_name = "Stairway to Heaven"  # Example track name
 track_results = music.sp.search(q=track_name, type='track', limit=1)
@@ -162,7 +172,8 @@ if track_results['tracks']['items']:
     audio_features = music.get_track_audio_features(track_id)
 else:
     print("Track not found.")
-
+#%%
+    
 # Retrieve artist metadata
 artist_name = "Led Zeppelin"  # Example artist name
 artist_results = music.sp.search(q=artist_name, type='artist', limit=1)
@@ -171,7 +182,7 @@ if artist_results['artists']['items']:
     artist_metadata = music.get_artist_metadata(artist_id)
 else:
     print("Artist not found.")
-
+#%%
 # Retrieve track metadata
 track_metadata = music.get_track_metadata(track_id)
 

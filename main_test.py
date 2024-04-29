@@ -1,3 +1,4 @@
+#%%
 # import libraries
 from model import HybridRecommender
 from music_data import Music
@@ -10,23 +11,27 @@ import pycountry
 # Ignore all warnings
 warnings.filterwarnings("ignore")
 
+#%%
 # Extract the various artists in the dataset and their associated encoded codes
 start_time = time.time()
 df = pd.read_csv('dataset.csv')
 df = df.drop_duplicates(subset='usersha1', keep='first')
 
+#%%
 # Normalize the 'plays' column
 min_value = df['plays'].min()
 max_value = df['plays'].max()
 df['plays'] = (df['plays'] - min_value) / (max_value - min_value)
 df.to_csv('normalized_data.csv')
 
+#%%
 # Get the artist names and countries
 artists = df['artname'].unique().tolist()
 artists_dict = {artist: i for i, artist in enumerate(artists)}
 countries = df['country'].unique().tolist()
 countries_dict = {country: i for i, country in enumerate(countries)}
 
+#%%
 # Function to get an artist name given the artist encoding code
 def artname_by_artcode(artist_code, dictionary=artists_dict):
     for key, value in dictionary.items():
@@ -35,6 +40,7 @@ def artname_by_artcode(artist_code, dictionary=artists_dict):
     msg = f'No artist found with code {artist_code}.'
     return msg
 
+#%%
 end_time = time.time()      
 execution_time = end_time - start_time
 
@@ -46,6 +52,7 @@ else:
 print('🤖 Hey there! 😄 Welcome to LHydra, your personal music guru. I am here to help you discover amazing songs that you will absolutely love!')
 print("🤖 But first, let me get to know you a little better. Don't worry, I won't bite! 😉")
 
+#%%
 # Get user input
 gender = input("🤖 So, are you a music man or a melody queen? (Enter 'male' or 'female')\n👤 ")
 if gender.lower() == 'male':
@@ -96,7 +103,7 @@ print(f"🤖 Did you know that {global_popular_artist} is currently the hottest 
 print(f"🤖 With their infectious beats and catchy lyrics, it's no surprise that many people are jamming to their tunes every month! 🎶")
 
 print(f"🤖 Ok! Enough of my fun facts! Here comes my findings")
-
+#%%
 # Impute artist, if not provided
 if favorite_artist.lower() in ['none', 'unknown']:
     fav_artist = global_popular_artist
@@ -107,29 +114,32 @@ else:
     new_artist_number = len(artists_dict) + 1
     artists_dict[favorite_artist] = new_artist_number
     fav_artist = artists_dict[favorite_artist]
-
+#%%
 # Impute play counts with global average, if not provided
 if plays in [0, 'none', 'None']:
     plays = average_playcounts
 else:
     plays = int(plays)
 
+#%%
 # Load and preprocess the dataset
 data = pd.read_csv('normalized_data.csv')
 music = Music()
 data = music.add_track_features_to_dataset(data)
 preprocessed_data = preprocess_data(data)
 
+#%%
 # Extract user-item interactions and item content features
 user_item_interactions = extract_user_item_interactions(preprocessed_data)
 item_content_features = extract_item_content_features(preprocessed_data)
-
+#%%
 # Split the data into training and testing sets using cross-validation
 train_data_list, test_data_list = split_data(user_item_interactions, n_splits=5, random_state=42)
-
+#%%
 # Create an instance of the HybridRecommender
 recommender = HybridRecommender(user_item_interactions, item_content_features)
 
+#%%
 # Perform cross-validation and evaluate the recommender system
 evaluation_metrics = []
 for train_data, test_data in zip(train_data_list, test_data_list):
@@ -139,7 +149,7 @@ for train_data, test_data in zip(train_data_list, test_data_list):
     # Evaluate the recommender system using the testing data
     metrics = recommender.evaluate(test_data)
     evaluation_metrics.append(metrics)
-
+#%%
 # Calculate average evaluation metrics across all cross-validation splits
 avg_metrics = {metric: sum(values) / len(values) for metric, values in zip(evaluation_metrics[0].keys(), zip(*[d.values() for d in evaluation_metrics]))}
 
@@ -150,11 +160,12 @@ print(f"Precision: {avg_metrics['Precision']}")
 print(f"Recall: {avg_metrics['Recall']}")
 print(f"F1-score: {avg_metrics['F1-score']}")
 print(f"MAP: {avg_metrics['MAP']}")
-
+#%%
 # Retrieve user listening history
 user_id = input("🤖 Enter your user ID:\n👤 ")
 listening_history = music.get_user_listening_history(user_id)
 
+#%%
 # Retrieve track audio features
 track_name = input("🤖 Enter the name of the track:\n👤 ")
 track_results = music.sp.search(q=track_name, type='track', limit=1)
@@ -164,6 +175,7 @@ if track_results['tracks']['items']:
 else:
     print("Track not found.")
 
+#%%
 # Retrieve artist metadata
 artist_name = input("🤖 Enter the name of the artist:\n👤 ")
 artist_results = music.sp.search(q=artist_name, type='artist', limit=1)
@@ -173,6 +185,7 @@ if artist_results['artists']['items']:
 else:
     print("Artist not found.")
 
+#%%
 # Retrieve track metadata
 track_metadata = music.get_track_metadata(track_id)
 
